@@ -1,0 +1,24 @@
+doctype html
+html
+    head
+        title Node Authentication
+        link(rel='stylesheet', href='//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css')
+        link(rel='stylesheet', href='//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css')
+        style.
+            body        { padding-top:80px; }
+            a.btn.btn-default { margin-bottom: 50px; }
+    body
+        .container
+            a.btn.btn-default(href='/')
+                span.fa.fa-home.fa-fw
+                |  Back
+
+            if message.length>0
+                .alert.alert-danger #{message}
+
+            form(method='POST')
+                legend Forgot Password
+                .form-group
+                    label(for='email') Email
+                    input.form-control(type='text', name='email', autofocus)
+                button.btn.btn-primary(type='submit') Reset Password
