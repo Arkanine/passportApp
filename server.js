@@ -35,56 +35,16 @@ app.use(session({ secret: 'secretword' }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-/**
- * Swagger
- */
-var models  = require('./swagger/models/models'),
-    test    = require('./swagger/models/test');
-
-app.use('/js', express.static('swagger/js'));
-app.use('/lib', express.static('swagger/lib'));
-app.use('/css', express.static('swagger/css'));
-app.use('/images', express.static('swagger/images'));
-// Set the main handler in swagger to the express app
-swagger.setAppHandler(app);
-// Adding models and methods to our RESTFul service
-swagger.addModels(models)
-    .addGet(test.dummyTestMethod);
-// set api info
-swagger.setApiInfo({
-    title: "KnowlegeBS API",
-    description: "API to manage job applications",
-    termsOfServiceUrl: "",
-    contact: "rozabi@pascalium.com",
-    license: "",
-    licenseUrl: ""
-});
-
-app.get('/api-doc', function (req, res) {
-    res.sendfile('swagger/swagger.html');
-});
-
-swagger.configureSwaggerPaths('', 'api-docs', '');
-
 var domain = 'localhost';
 if(argv.domain !== undefined)
     domain = argv.domain;
-else
-    console.log('No --domain=xxx specified, taking default hostname "localhost".');
-
 var port = 8080;
 if(argv.port !== undefined)
     port = argv.port;
-else
-    console.log('No --port=xxx specified, taking default port ' + port + '.');
-
 var applicationUrl = 'http://' + domain + ':' + port;
-console.log('Knowlege BS API running on ' + applicationUrl);
+require('./swagger/swagger')(app, swagger, applicationUrl);
 
-swagger.configure(applicationUrl, '1.0.0');
+require('./app/routes')(app,  passport); // password injection
 
-require('./app/routes')(app, passport); // password injection
-
-//var port = process.env.PORT || 8080;
 app.listen(port);
 console.log('Port: ' + port);

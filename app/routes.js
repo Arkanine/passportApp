@@ -7,6 +7,14 @@ module.exports = function(app, passport) {
     var notifier     = require('node-notifier');
     var path         = require('path');
 
+    app.get('/api-doc', function (req, res) {
+        res.sendfile('swagger/swagger.html');
+    });
+
+    var userCtrl     = require('../swagger/models/allUsers');
+    var Users = require('./models/user');
+    app.get('/users', userCtrl.getAllUsersMethod.action);
+
     // HOME PAGE (with login links) ========
     app.get('/', function(req, res) {
         res.render('index.jade'); // load the index.ejs file
@@ -27,11 +35,6 @@ module.exports = function(app, passport) {
             description: 'One time deposit for ' + req.user.email + '.'
         }, function(err, charge) {
             if (err) return next(err);
-
-            console.log(req.user);
-            console.log(charge);
-
-            //User.findOne({ 'local.email' : req.user.local.email }, function(err, user) {});
 
             req.user.local.balance = req.user.local.balance ? req.user.local.balance : 0;
             req.user.local.balance += charge.amount;
@@ -59,8 +62,8 @@ module.exports = function(app, passport) {
 
     // process the login form
     app.post('/login', passport.authenticate('local-login', {
-        successRedirect : '/profile', // redirect to the secure profile section
-        failureRedirect : '/login', // redirect back to the signup page if there is an error
+        successRedirect : '/profile',
+        failureRedirect : '/login',
         failureFlash : true // allow flash messages
     }));
 
@@ -120,7 +123,7 @@ module.exports = function(app, passport) {
 // =============================================================================
 // AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
 // =============================================================================
-// locally --------------------------------
+// local --------------------------------
     app.get('/connect/local', function(req, res) {
         res.render('connect-local.jade', { message: req.flash('loginMessage') });
     });
@@ -131,43 +134,28 @@ module.exports = function(app, passport) {
     }));
 
 // networks -----------------------------------
-    // facebook -------------------------------
-    // send to facebook to do the authentication
     app.get('/connect/facebook', passport.authorize('facebook', { scope : 'email' }));
-
-    // handle the callback after facebook has authorized the user
     app.get('/connect/facebook/callback',
         passport.authorize('facebook', {
             successRedirect : '/profile',
             failureRedirect : '/'
         }));
 
-    // twitter --------------------------------
-    // send to twitter to do the authentication
     app.get('/connect/twitter', passport.authorize('twitter', { scope : 'email' }));
-
-    // handle the callback after twitter has authorized the user
     app.get('/connect/twitter/callback',
         passport.authorize('twitter', {
             successRedirect : '/profile',
             failureRedirect : '/'
         }));
 
-    // google ---------------------------------
-    // send to google to do the authentication
     app.get('/connect/google', passport.authorize('google', { scope : ['profile', 'email'] }));
-
-    // the callback after google has authorized the user
     app.get('/connect/google/callback',
         passport.authorize('google', {
             successRedirect : '/profile',
             failureRedirect : '/'
         }));
 
-    // linkedIn ---------------------------------
-    // send to google to do the authentication
     app.get('/connect/linkedin', passport.authenticate('linkedin', { scope: ['r_basicprofile', 'r_emailaddress'] }));
-
     app.get('/connect/linkedin/callback',
         passport.authenticate('linkedin', {
             successRedirect : '/profile',
@@ -178,10 +166,6 @@ module.exports = function(app, passport) {
 // =============================================================================
 // UNLINK ACCOUNTS =============================================================
 // =============================================================================
-    // used to unlink accounts. for social accounts, just remove the token
-    // for local account, remove email and password
-    // user account will stay active in case they want to reconnect in the future
-
 // local -----------------------------------
     app.get('/unlink/local', function(req, res) {
         var user            = req.user;
@@ -193,7 +177,6 @@ module.exports = function(app, passport) {
     });
 
 // networks -----------------------------------
-    // facebook -------------------------------
     app.get('/unlink/facebook', function(req, res) {
         var user            = req.user;
         user.facebook.token = undefined;
@@ -202,7 +185,6 @@ module.exports = function(app, passport) {
         });
     });
 
-    // twitter --------------------------------
     app.get('/unlink/twitter', function(req, res) {
         var user           = req.user;
         user.twitter.token = undefined;
@@ -211,7 +193,6 @@ module.exports = function(app, passport) {
         });
     });
 
-    // google ---------------------------------
     app.get('/unlink/google', function(req, res) {
         var user          = req.user;
         user.google.token = undefined;
@@ -220,7 +201,6 @@ module.exports = function(app, passport) {
         });
     });
 
-    // linkedIn ---------------------------------
     app.get('/unlink/linkedin', function(req, res) {
         var user            = req.user;
         user.linkedIn.token = undefined;
